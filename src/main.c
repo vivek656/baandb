@@ -45,31 +45,22 @@ api_response put_handler(api_request* request, kv_store* store) {
 
     cJSON_Delete(json);
     api_response response = { .status_code = 200, .body = "Value stored successfully" };
+    add_reponse_header(&response, LOCATION.name , uuid_str);
     return response;
 }
 
 api_response get_handler(api_request* request, kv_store* store) {
-    cJSON *json = cJSON_Parse(request->body);
-    if (!json) {
-        api_response response = { .status_code = 400, .body = "Invalid JSON format" };
+    const char *key = find_param_value(request, "key");
+    if (!key) {
+        api_response response = { .status_code = 400, .body = "Key not found" };
         return response;
     }
 
-    const cJSON *key = cJSON_GetObjectItemCaseSensitive(json, "key");
-    if (!cJSON_IsString(key) || (key->valuestring == NULL)) {
-        cJSON_Delete(json);
-        api_response response = { .status_code = 400, .body = "Invalid key format" };
-        return response;
-    }
-
-    kvs_object* obj = get(store, key->valuestring);
+    kvs_object* obj = get(store, key);
     if (!obj) {
-        cJSON_Delete(json);
         api_response response = { .status_code = 404, .body = "Key not found" };
         return response;
     }
-
-    cJSON_Delete(json);
     api_response response = { .status_code = 200, .body = (char*)obj->value };
     return response;
 }
@@ -94,8 +85,8 @@ int main() {
     Server* server = create_server(8888, store);
 
     // Bind endpoints to the server
-    bind_endpoint(server, (endpoint){.method = "PUT", .urlPath = "/put"}, put_handler);
-    bind_endpoint(server, (endpoint){.method = "GET", .urlPath = "/get"}, get_handler);
+    bind_endpoint(server, (endpoint){.method = "PUT", .urlPath = "/kv"}, put_handler);
+    bind_endpoint(server, (endpoint){.method = "GET", .urlPath = "/kv"}, get_handler);
     bind_endpoint(server, (endpoint){.method = "GET", .urlPath = "/example"}, example_handler);
 
     // Start the server

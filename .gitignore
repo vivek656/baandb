@@ -1,4 +1,4 @@
-     # Ignore build artifacts
+# Ignore build artifacts
 /build/
 /bin/
 /obj/
