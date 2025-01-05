@@ -21,7 +21,9 @@ find_package(cJSON REQUIRED)
 include_directories(${cJSON_INCLUDE_DIRS})
 
 # Add executable
-add_executable(baandb src/main.c src/kv_store.c src/server.c)
+add_executable(
+    baandb src/main.c 
+    src/kv_store.c src/server/server.c src/server/http_request.c)
 
 # Link against GLib, UUID, and cJSON
 target_link_libraries(baandb ${GLIB_LIBRARIES} ${UUID_LIBRARIES} cjson)

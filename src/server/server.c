@@ -4,11 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#include "kv_store.h"
 #include "server.h"
-
-#define BUFFER_SIZE 1024
-#define DEFAULT_MAX_HEADERS 50
 
 header_name LOCATION = {.name = "Location"};
 header_name CONTENT_TYPE = {.name = "Content-Type"};
@@ -37,11 +33,10 @@ char* concat_strings(const char* str1, const char* str2) {
     return result;
 }
 
-Server *create_server(int port, kv_store *store)
+Server *create_server(int port     )
 {
     Server *server = (Server *)malloc(sizeof(Server));
     server->port = port;
-    server->store = store;
     server->bindings = NULL;
     server->binding_count = 0;
     server->max_headers = DEFAULT_MAX_HEADERS; // Set default max_headers
@@ -73,7 +68,7 @@ int handle_request(api_request *request, Server *server, api_response *response)
     {
         if (compare_endpoints(&request->ep, &server->bindings[i].ep))
         {
-            *response = server->bindings[i].handler(request, server->store);
+            *response = server->bindings[i].handler(request);
             return 0;
         }
     }
@@ -83,29 +78,6 @@ int handle_request(api_request *request, Server *server, api_response *response)
     return 0; // Indicate success
 }
 
-const char *find_header_value(api_request *request, const char *header_name)
-{
-    for (header_pair *header = request->headers; header->key != NULL; header++)
-    {
-        if (strcmp(header->key, header_name) == 0)
-        {
-            return header->value;
-        }
-    }
-    return NULL;
-}
-
-const char *find_param_value(api_request *request, const char *param_name)
-{
-    for (params_pair *param = request->params; param->key != NULL; param++)
-    {
-        if (strcmp(param->key, param_name) == 0)
-        {
-            return param->value;
-        }
-    }
-    return NULL;
-}
 void free_request(api_request *request)
 {
     if (request->headers)
@@ -193,7 +165,7 @@ void handle_client(int client_socket, Server *server)
     int header_count = 0;
     int params_count = 0;
     char *body = NULL;
-    api_request request;
+    api_request request = {0}; // Initialize request to zero
     api_response response = {0}; // Initialize response
 
     received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
@@ -314,13 +286,8 @@ void handle_client(int client_socket, Server *server)
     }
     goto cleanup;
 cleanup:
-    if (&request != NULL)
-    {
-        free_request(&request);
-    }
-    if(&response != NULL){
-        free_response(&response); // Use the new free_response method
-    }
+    free_request(&request);
+    free_response(&response); // Use the new free_response method
    
 }
 
@@ -374,7 +341,6 @@ void free_server(Server *server)
 {
     for (int i = 0; i < server->binding_count; i++)
     {
-        free(server->bindings[i].handler);
         free(server->bindings[i].ep.method);
         free(server->bindings[i].ep.urlPath);
     }

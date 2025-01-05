@@ -3,11 +3,15 @@
 #include <string.h>
 #include <uuid/uuid.h>
 #include "kv_store.h"
-#include "server.h"
 #include <cjson/cJSON.h> // Include cJSON library for JSON parsing
 
+#include "server/http_server.h"
+kv_store* store;
 
-api_response put_handler(api_request* request, kv_store* store) {
+// Server server = create_server(8888, store);
+Server* server = NULL;
+
+api_response put_handler(api_request* request) {
     cJSON *json = cJSON_Parse(request->body);
     if (!json) {
         api_response response = { .status_code = 400, .body = "Invalid JSON format" };
@@ -49,8 +53,8 @@ api_response put_handler(api_request* request, kv_store* store) {
     return response;
 }
 
-api_response get_handler(api_request* request, kv_store* store) {
-    const char *key = find_param_value(request, "key");
+api_response get_handler(api_request* request) {
+    const char *key = find_request_param_value(request, "key");
     if (!key) {
         api_response response = { .status_code = 400, .body = "Key not found" };
         return response;
@@ -65,8 +69,8 @@ api_response get_handler(api_request* request, kv_store* store) {
     return response;
 }
 
-api_response example_handler(api_request* request, kv_store* store) {
-    const char* user_agent = find_header_value(request, "User-Agent");
+api_response example_handler(api_request* request) {
+    const char* user_agent = find_request_header_value(request, "User-Agent");
     if (user_agent) {
         printf("User-Agent: %s\n", user_agent);
     } else {
@@ -79,10 +83,10 @@ api_response example_handler(api_request* request, kv_store* store) {
 
 int main() {
     // Initialize the key-value store
+    store = create_store();
     kv_store* store = create_store();
-
     // Create the server on port 8888
-    Server* server = create_server(8888, store);
+    server = create_server(8888);
 
     // Bind endpoints to the server
     bind_endpoint(server, (endpoint){.method = "PUT", .urlPath = "/kv"}, put_handler);
