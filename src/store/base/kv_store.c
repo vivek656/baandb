@@ -5,11 +5,25 @@
 #include <uuid/uuid.h>
 #include "kv_store.h"
 
+
+kv_store* __global_kv_store = NULL;
+
 // Create a key-value store
 kv_store* create_store() {
     kv_store* store = (kv_store*)malloc(sizeof(kv_store));
     store->table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
     return store;
+}
+
+kv_store* store_reference() {
+    return __global_kv_store;
+}
+
+kv_store* get_store() {
+    if(__global_kv_store == NULL) {
+        __global_kv_store = create_store();
+    }
+    return __global_kv_store;
 }
 
 // Free the memory allocated for the key-value store

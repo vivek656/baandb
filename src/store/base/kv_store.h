@@ -3,6 +3,8 @@
 
 #include <glib.h>
 
+
+
 // Define a structure for the kvs_object
 typedef struct {
     char* uuid; // UUID key
@@ -14,7 +16,10 @@ typedef struct {
     GHashTable* table; // Hash table for key-value pairs
 } kv_store;
 
+extern kv_store* __global_kv_store;
 // Function declarations
+kv_store* get_store();
+kv_store* store_reference();
 kv_store* create_store();
 void free_store(kv_store* store);
 int put(kv_store* store, const char* uuid, kvs_object* value);
