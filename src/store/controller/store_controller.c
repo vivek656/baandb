@@ -43,6 +43,7 @@ put_handler(api_request* request) {
 
     kvs_object* obj = (kvs_object*)malloc(sizeof(kvs_object));
     obj->value = strdup(value->valuestring);
+    obj->key = strdup(uuid_str);
 
     if (put(store, uuid_str, obj) == -1) {
         free(obj->value);
@@ -71,7 +72,12 @@ get_handler(api_request* request) {
         api_response response = {.status_code = 404, .body = "Key not found"};
         return response;
     }
-    api_response response = {.status_code = 200, .body = (char*)obj->value};
+    cJSON* json = cJSON_CreateObject();
+    
+    cJSON_AddStringToObject(json,"key",obj->key );
+    cJSON_AddStringToObject(json,"value",obj->value );
+    
+    api_response response = {.status_code = 200, .body = cJSON_Print(json)};
     return response;
 }
 

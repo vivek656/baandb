@@ -7,7 +7,7 @@
 
 // Define a structure for the kvs_object
 typedef struct {
-    char* uuid; // UUID key
+    char* key; // UUID key
     void* value; // Value that can store any type
 } kvs_object;
 
