@@ -5,10 +5,19 @@
 #include <arpa/inet.h>
 
 #include "server.h"
+#include "../thread/threadpool.h"
 
 header_name LOCATION = {.name = "Location"};
 header_name CONTENT_TYPE = {.name = "Content-Type"};
 header_name CONTENT_LENGTH = {.name = "Content-Length"};
+
+ThreadPool *__server_thread_pool = NULL;
+
+typedef struct
+{
+    int client_socket;
+    Server *server;
+} RequestContainer;
 
 Server *create_server(int port     )
 {
@@ -17,6 +26,8 @@ Server *create_server(int port     )
     server->bindings = NULL;
     server->binding_count = 0;
     server->max_headers = DEFAULT_MAX_HEADERS; // Set default max_headers
+
+    __server_thread_pool = threadpool_create(4, 10, 100); // Create a thread pool with 4 threads
     return server;
 }
 
@@ -100,8 +111,12 @@ void free_response(api_response *response)
     }
 }
 
-void handle_client(int client_socket, Server *server)
+void handle_client(void *arg)
 {
+    RequestContainer *request_container = (RequestContainer *)arg;
+    int client_socket = request_container->client_socket;
+    Server *server = request_container->server;
+    
     char buffer[BUFFER_SIZE];
     int received;
     header_pair *headers = NULL;
@@ -111,6 +126,7 @@ void handle_client(int client_socket, Server *server)
     char *body = NULL;
     api_request request = {0}; // Initialize request to zero
     api_response response = {0}; // Initialize response
+    
 
     received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
     if (received < 0)
@@ -213,7 +229,8 @@ void handle_client(int client_socket, Server *server)
         .ep = ep,
         .headers = headers,
         .params = params, // Add params to request
-        .body = body};
+        .body = body
+    };
 
     if (handle_request(&request, server, &response) < 0)
     {
@@ -232,7 +249,7 @@ void handle_client(int client_socket, Server *server)
 cleanup:
     free_request(&request);
     free_response(&response); // Use the new free_response method
-   
+    close(client_socket);
 }
 
 int start_server(Server *server)
@@ -273,11 +290,20 @@ int start_server(Server *server)
             perror("accept");
             continue;
         }
-        handle_client(client_socket, server);
-        close(client_socket);
+        RequestContainer *request_container = (RequestContainer *)malloc(sizeof(RequestContainer));
+        if (!request_container)
+        {
+            perror("malloc failed for container");
+            close(client_socket);
+            continue;
+        }
+        request_container->client_socket = client_socket;
+        request_container->server = server;
+        threadpool_submit(handle_client, request_container, __server_thread_pool);
     }
 
     close(server_socket);
+    threadpool_destroy(__server_thread_pool);
     return 0;
 }
 
