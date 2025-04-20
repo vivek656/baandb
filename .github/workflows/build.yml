@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -18,22 +17,22 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v3
 
-    - name: 🛠️ Set up dependencies (Ubuntu only)
+    - name: 🛠️ Install dependencies (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt update
-        sudo apt install -y \
+        sudo apt-get update
+        sudo apt-get install -y \
           build-essential cmake pkg-config \
           libglib2.0-dev uuid-dev \
           libapr1-dev libaprutil1-dev \
           libcjson-dev
 
-    - name: 🍎 Install dependencies (macOS only)
+    - name: 🍎 Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         brew install cmake pkg-config glib apr apr-util cjson
 
-    - name: 🪟 Setup MSYS2 & dependencies (Windows only)
+    - name: 🪟 Setup MSYS2 & dependencies (Windows)
       if: matrix.os == 'windows-latest'
       uses: msys2/setup-msys2@v2
       with:
@@ -48,10 +47,9 @@ jobs:
           mingw-w64-x86_64-apr-util
           mingw-w64-x86_64-cjson
 
-    - name: 🔧 Configure and build
+    - name: 🔧 Configure & Build
       run: |
         mkdir -p build
         cd build
         cmake ..
         cmake --build .
-      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
