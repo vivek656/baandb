@@ -1,0 +1,57 @@
+name: Build and Test baandb
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v3
+
+    - name: 🛠️ Set up dependencies (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          build-essential cmake pkg-config \
+          libglib2.0-dev uuid-dev \
+          libapr1-dev libaprutil1-dev \
+          libcjson-dev
+
+    - name: 🍎 Install dependencies (macOS only)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cmake pkg-config glib apr apr-util cjson
+
+    - name: 🪟 Setup MSYS2 & dependencies (Windows only)
+      if: matrix.os == 'windows-latest'
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          base-devel
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-pkg-config
+          mingw-w64-x86_64-glib2
+          mingw-w64-x86_64-apr
+          mingw-w64-x86_64-apr-util
+          mingw-w64-x86_64-cjson
+
+    - name: 🔧 Configure and build
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        cmake --build .
+      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
