@@ -34,6 +34,7 @@ jobs:
       run: |
         brew update
         brew install cmake pkg-config glib apr apr-util cjson
+        brew link glib --force
 
     # Setup MSYS2 and install dependencies for Windows
     - name: 🪟 Setup MSYS2 & dependencies (Windows)
