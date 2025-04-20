@@ -31,11 +31,10 @@ jobs:
     # Install dependencies for macOS
     - name: 🍎 Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
-      run:  |
+      run:   |
         brew update
         brew install cmake pkg-config glib apr apr-util cjson
-        brew link glib --overwrite
-        export PKG_CONFIG_PATH="$(brew --prefix glib)/lib/pkgconfig:$PKG_CONFIG_PATH"
+        echo "PKG_CONFIG_PATH=$(brew --prefix glib)/lib/pkgconfig" >> $GITHUB_ENV
 
     # Setup MSYS2 and install dependencies for Windows
     - name: 🪟 Setup MSYS2 & dependencies (Windows)
