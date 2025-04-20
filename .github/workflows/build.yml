@@ -27,6 +27,16 @@ jobs:
           libglib2.0-dev uuid-dev \
           libapr1-dev libaprutil1-dev \
           libcjson-dev
+          
+    # Install dependencies for macOS
+    - name: 🍎 Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run:   |
+        brew update
+        brew install cmake pkg-config glib apr apr-util cjson
+        export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
+        echo "PKG_CONFIG_PATH=$(brew --prefix glib)/lib/pkgconfig" >> $GITHUB_ENV
+        breew upgrade --cask
 
     # Setup MSYS2 and install dependencies for Windows
     - name: 🪟 Setup MSYS2 & dependencies (Windows)
