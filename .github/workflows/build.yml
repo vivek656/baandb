@@ -34,9 +34,9 @@ jobs:
       run:   |
         brew update
         brew install cmake pkg-config glib apr apr-util cjson
-        export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
         echo "PKG_CONFIG_PATH=$(brew --prefix glib)/lib/pkgconfig" >> $GITHUB_ENV
-        brew upgrade --cask
+        brew install gtk
+        brew upgrade
 
     # Setup MSYS2 and install dependencies for Windows
     - name: 🪟 Setup MSYS2 & dependencies (Windows)
