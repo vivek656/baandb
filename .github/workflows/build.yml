@@ -56,6 +56,8 @@ jobs:
 
     # Build the project
     - name: 🔧 Configure & Build
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
       run: |
         mkdir -p build
         cd build
