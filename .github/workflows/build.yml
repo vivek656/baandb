@@ -79,9 +79,10 @@ jobs:
       run: |
         cd build
         ctest .
-        - name: 🧪 Run tests windows
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        run: |
-          cd build
-          ctest .    
+
+    - name: 🧪 Run tests windows
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
+      run: |
+        cd build
+        ctest .    
