@@ -53,6 +53,7 @@ jobs:
           mingw-w64-x86_64-apr
           mingw-w64-x86_64-apr-util
           mingw-w64-x86_64-cjson
+          uuid
 
     # Build the project
     - name: 🔧 Configure & Build
@@ -72,7 +73,15 @@ jobs:
         cmake --build .
 
     # Run tests (if applicable)
-    - name: 🧪 Run tests
+    - name: 🧪 Run tests linux and macos
+      if: matrix.os != 'windows-latest'
+      shell: msys2 {0}
       run: |
         cd build
         ctest .
+        - name: 🧪 Run tests windows
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: |
+          cd build
+          ctest .    
