@@ -75,7 +75,6 @@ jobs:
     # Run tests (if applicable)
     - name: 🧪 Run tests linux and macos
       if: matrix.os != 'windows-latest'
-      shell: msys2 {0}
       run: |
         cd build
         ctest .
