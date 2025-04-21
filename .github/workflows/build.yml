@@ -63,6 +63,13 @@ jobs:
         cd build
         cmake ..
         cmake --build .
+    - name: 🔧 Configure & Build linux and macos
+      if: matrix.os != 'windows-latest'
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        cmake --build .
 
     # Run tests (if applicable)
     - name: 🧪 Run tests
