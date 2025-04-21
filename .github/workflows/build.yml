@@ -53,7 +53,7 @@ jobs:
           mingw-w64-x86_64-apr
           mingw-w64-x86_64-apr-util
           mingw-w64-x86_64-cjson
-          uuid
+          libuuid-devel
 
     # Build the project
     - name: 🔧 Configure & Build
