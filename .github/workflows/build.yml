@@ -1,4 +1,4 @@
-name: Build and Test baandb
+name: Build and Package baandb
 
 on:
   push:
@@ -8,80 +8,46 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest,windows-latest]
+    runs-on: ubuntu-latest
 
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v3
 
-    # Install dependencies for Linux
     - name: 🛠️ Install dependencies (Linux)
-      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           build-essential cmake pkg-config \
-          libglib2.0-dev uuid-dev \
-          libapr1-dev libaprutil1-dev \
-          libcjson-dev
-          
-    # Install dependencies for macOS
-    - name: 🍎 Install dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run:   |
-        brew update
-        brew install cmake pkg-config glib apr apr-util cjson
-        brew install gtk
-        echo "PKG_CONFIG_PATH=$(brew --prefix)/lib/pkgconfig:$(brew --prefix gettext)/lib/pkgconfig" >> $GITHUB_ENV
-        echo "LDFLAGS=-L$(brew --prefix)/lib -L$(brew --prefix gettext)/lib" >> $GITHUB_ENV
-        echo "CPPFLAGS=-I$(brew --prefix)/include -I$(brew --prefix gettext)/include" >> $GITHUB_ENV
-    # Setup MSYS2 and install dependencies for Windows
-    - name: 🪟 Setup MSYS2 & dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: msys2/setup-msys2@v2
+          libglib2.0-dev libapr1-dev libaprutil1-dev libcjson-dev
+
+    - name: 🔧 Configure & Build Linux Executable
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        cmake --build .
+
+    - name: 📦 Archive Linux executable
+      uses: actions/upload-artifact@v3
       with:
-        update: true
-        install: >-
-          base-devel
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-pkg-config
-          mingw-w64-x86_64-glib2
-          mingw-w64-x86_64-apr
-          mingw-w64-x86_64-apr-util
-          mingw-w64-x86_64-cjson
-          libuuid-devel
+        name: baandb-linux
+        path: build/baandb
 
-    # Build the project
-    - name: 🔧 Configure & Build
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
-      run: |
-        mkdir -p build
-        cd build
-        cmake ..
-        cmake --build .
-    - name: 🔧 Configure & Build linux and macos
-      if: matrix.os != 'windows-latest'
-      run: |
-        mkdir -p build
-        cd build
-        cmake ..
-        cmake --build .
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    # Run tests (if applicable)
-    - name: 🧪 Run tests linux and macos
-      if: matrix.os != 'windows-latest'
+    - name: 🐳 Build Docker image
       run: |
-        cd build
-        ctest .
+        docker build -t baandb:latest .
 
-    - name: 🧪 Run tests windows
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
+    - name: 📦 Save Docker image as artifact
       run: |
-        cd build
-        ctest .    
+        docker save baandb:latest | gzip > baandb.tar.gz
+      shell: bash
+
+    - name: 📤 Upload Docker image artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: baandb-docker-image
+        path: baandb.tar.gz
