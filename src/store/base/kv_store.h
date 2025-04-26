@@ -22,8 +22,8 @@ kv_store* get_store();
 kv_store* store_reference();
 kv_store* create_store();
 void free_store(kv_store* store);
-int put(kv_store* store, const char* uuid, kvs_object* value);
-kvs_object* get(kv_store* store, const char* uuid);
-int delete_entry(kv_store* store, const char* uuid);
+int put(kv_store* store, const char* key, kvs_object* value,char *error, int error_msg_size);
+kvs_object* get(kv_store* store, const char* key);
+int delete_entry(kv_store* store, const char* key);
 
 #endif // KV_STORE_H

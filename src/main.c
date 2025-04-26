@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <uuid/uuid.h>
 #include "global/controller/global_controller.h"
 #include "store/base/kv_store.h"
 #include <cjson/cJSON.h> // Include cJSON library for JSON parsing

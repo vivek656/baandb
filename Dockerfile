@@ -4,7 +4,6 @@ FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y \
     build-essential \
     libglib2.0-dev \
-    uuid-dev \
     libcjson-dev \
     && rm -rf /var/lib/apt/lists/*
 

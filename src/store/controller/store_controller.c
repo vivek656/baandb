@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <uuid/uuid.h>
 #include "../base/kv_store.h"
 
 #include <cjson/cJSON.h>
@@ -13,7 +12,6 @@
 #include "store_controller.h"
 
 kv_store* store;
-
 
 api_response
 put_handler(api_request* request) {
@@ -32,30 +30,24 @@ put_handler(api_request* request) {
         return response;
     }
 
-    char uuid_str[37];
-    if (cJSON_IsString(key) && (key->valuestring != NULL)) {
-        strncpy(uuid_str, key->valuestring, sizeof(uuid_str));
-    } else {
-        uuid_t uuid;
-        uuid_generate(uuid);
-        uuid_unparse(uuid, uuid_str);
-    }
-
     kvs_object* obj = (kvs_object*)malloc(sizeof(kvs_object));
+    char* keyString = key->valuestring;
     obj->value = strdup(value->valuestring);
-    obj->key = strdup(uuid_str);
-
-    if (put(store, uuid_str, obj) == -1) {
+    obj->key = strdup(keyString);
+    char error_message[256];
+    if (put(store, keyString, obj, error_message, sizeof(error_message)) == -1) {
+        fprintf(stderr, "Error: %s\n", error_message);
         free(obj->value);
         free(obj);
         cJSON_Delete(json);
-        api_response response = {.status_code = 400, .body = "Failed to store value"};
+        api_response response = {.status_code = 400, .body = strdup(error_message)};
+        //free(error_message)
         return response;
     }
 
     cJSON_Delete(json);
     api_response response = {.status_code = 200, .body = "Value stored successfully"};
-    add_reponse_header(&response, LOCATION.name, uuid_str);
+    add_reponse_header(&response, LOCATION.name, keyString);
     return response;
 }
 
@@ -73,10 +65,10 @@ get_handler(api_request* request) {
         return response;
     }
     cJSON* json = cJSON_CreateObject();
-    
-    cJSON_AddStringToObject(json,"key",obj->key );
-    cJSON_AddStringToObject(json,"value",obj->value );
-    
+
+    cJSON_AddStringToObject(json, "key", obj->key);
+    cJSON_AddStringToObject(json, "value", obj->value);
+
     api_response response = {.status_code = 200, .body = cJSON_Print(json)};
     return response;
 }

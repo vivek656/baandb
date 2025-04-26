@@ -24,7 +24,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           build-essential cmake pkg-config \
-          libglib2.0-dev uuid-dev \
+          libglib2.0-dev 
           libapr1-dev libaprutil1-dev \
           libcjson-dev
           
@@ -53,7 +53,6 @@ jobs:
           mingw-w64-x86_64-apr
           mingw-w64-x86_64-apr-util
           mingw-w64-x86_64-cjson
-          libuuid-devel
 
     # Build the project
     - name: 🔧 Configure & Build

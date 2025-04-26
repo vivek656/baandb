@@ -10,7 +10,6 @@ include(FindPkgConfig)
 
 # Find dependencies
 pkg_check_modules(GLIB REQUIRED glib-2.0)
-pkg_check_modules(UUID REQUIRED uuid)
 pkg_check_modules(APR REQUIRED apr-1)
 pkg_check_modules(APRUTIL REQUIRED apr-util-1)
 pkg_check_modules(cJSON REQUIRED libcjson)
@@ -30,7 +29,6 @@ add_executable(baandb
 # Include directories
 target_include_directories(baandb PRIVATE
     ${GLIB_INCLUDE_DIRS}
-    ${UUID_INCLUDE_DIRS}
     ${APR_INCLUDE_DIRS}
     ${APRUTIL_INCLUDE_DIRS}
     ${cJSON_INCLUDE_DIRS}
@@ -39,7 +37,6 @@ target_include_directories(baandb PRIVATE
 # Compile definitions/flags
 target_compile_definitions(baandb PRIVATE
     ${GLIB_CFLAGS_OTHER}
-    ${UUID_CFLAGS_OTHER}
     ${APR_CFLAGS_OTHER}
     ${APRUTIL_CFLAGS_OTHER}
     ${cJSON_CFLAGS_OTHER}
@@ -48,7 +45,6 @@ target_compile_definitions(baandb PRIVATE
 # Link libraries
 target_link_libraries(baandb PRIVATE
     ${GLIB_LIBRARIES}
-    ${UUID_LIBRARIES}
     ${APR_LIBRARIES}
     ${APRUTIL_LIBRARIES}
     ${cJSON_LIBRARIES}
